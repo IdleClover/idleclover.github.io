@@ -4,5 +4,16 @@ theme: just-the-docs
 
 url: https://idleclover.github.io/
 
-aux_links:
-  Template Repository: https://github.com/just-the-docs/just-the-docs-template
+callouts:
+  issue:
+    title: issue
+    color: red
+  warning:
+    title: Warning
+    color: yellow
+  info:
+    title: Info
+    color: blue
+  success:
+    title: Success
+    color: green
