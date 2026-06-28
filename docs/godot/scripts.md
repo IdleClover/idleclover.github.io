@@ -2,6 +2,7 @@
 title: Scripts
 layout: default
 parent: Godot
+nav_order: 1
 ---
 
 # Scripts
@@ -19,21 +20,73 @@ git push <span class="nt">-u</span> origin &lt;project-name&gt;
 <div class="git-config">
   <label>Project : <input id="project-name" type="text" placeholder="<project-name>"/></label>
   <label>Version :
-    <select id="version-select">
+    <select class="version-select" id="new-project-version">
       <option value="4.7">4.7</option>
       <option value="4.6">4.6</option>
     </select>
   </label>
 </div>
 
+## Mettre à jour
+
+Généralement, on veut rester sur la même version tout du long, mais si c'est juste pour avoir le dernier patch, c'est raisonnable.
+
+### Sans modifications
+
+Le moteur n'a pas encore été modifié, donc on reprend juste les deux derniers commits.
+
+<div class="language-bash highlighter-rouge"><div class="highlight" tabindex="0"><pre class="highlight"><code id="godot-without">git fetch upstream 4.7
+git reset <span class="nt">--hard</span> upstream/4.7
+</code></pre></div><button type="button" aria-label="Copy code to clipboard"><svg viewBox="0 0 24 24" class="copy-icon"><use xlink:href="#svg-copy"></use></svg></button></div>
+
+<div class="git-config">
+  <label>Version :
+    <select class="version-select" id="update-without-project-version">
+      <option value="4.7">4.7</option>
+      <option value="4.6">4.6</option>
+    </select>
+  </label>
+</div>
+
+### Avec modifications
+
+Le moteur a été modifié, il faut donc reprendre tous les commits intermédiaires.
+
+<div class="language-bash highlighter-rouge"><div class="highlight" tabindex="0"><pre class="highlight"><code id="godot-with">git fetch upstream 4.7
+git rebase upstream/4.7
+</code></pre></div><button type="button" aria-label="Copy code to clipboard"><svg viewBox="0 0 24 24" class="copy-icon"><use xlink:href="#svg-copy"></use></svg></button></div>
+
+<div class="git-config">
+  <label>Version :
+    <select class="version-select" id="update-with-project-version">
+      <option value="4.7">4.7</option>
+      <option value="4.6">4.6</option>
+    </select>
+  </label>
+</div>
+
+
 <script>
-function updateSnippet() {
-    const name = document.getElementById('project-name').value || '&lt;project-name&gt';
-    const version = document.getElementById('version-select').value;
+function updateNewProjectSnippet() {
+    const name = document.getElementById('project-name').value.toLowerCase().replaceAll(" ", "-") || '&lt;project-name&gt';
+    const version = document.getElementById('new-project-version').value;
 
     document.getElementById('godot-new-project').innerHTML =
 `git fetch upstream ${version} <span class="c"># Mettre à jour ou installer une nouvelle version</span>\ngit switch <span class="nt">-c</span> ${name} upstream/${version}\ngit push <span class="nt">-u</span> origin ${name}\n`;
 }
+
+
+function updateUpdateProjectSnippet() {
+    const version = document.getElementById('update-without-project-version').value;
+
+    document.getElementById('godot-without').innerHTML =
+`git fetch upstream ${version}\ngit reset <span class="nt">--hard</span> upstream/${version}`;
+
+
+    document.getElementById('godot-with').innerHTML =
+`git fetch upstream ${version}\ngit rebase upstream/${version}`;
+}
+
 
 async function fetchGodotVersions() {
     const response = await fetch(
@@ -45,35 +98,29 @@ async function fetchGodotVersions() {
 
 async function populateVersionSelect() {
     const versions = await fetchGodotVersions();
-    const select = document.getElementById('version-select');
-    select.innerHTML = versions
-      .map(v => `<option value="${v}">${v}</option>`)
-      .join('');
-    updateSnippet();
+    for (const select of document.getElementsByClassName('version-select')) {
+        select.innerHTML = versions
+            .map(v => `<option value="${v}">${v}</option>`)
+            .join('');
+    }
+    
+    updateNewProjectSnippet();
 }
 
 populateVersionSelect();
 
-document.getElementById('project-name').addEventListener('input', updateSnippet);
-document.getElementById('version-select').addEventListener('change', updateSnippet);
+document.getElementById('project-name').addEventListener('input', updateNewProjectSnippet);
+document.getElementById('new-project-version').addEventListener('change', updateNewProjectSnippet);
+
+const updateWithout = document.getElementById('update-without-project-version');
+const updateWith = document.getElementById('update-with-project-version');
+
+updateWithout.addEventListener('change', () => {
+    updateWith.value = updateWithout.value;
+    updateUpdateProjectSnippet();
+});
+updateWith.addEventListener('change', () => {
+    updateWithout.value = updateWith.value;
+    updateUpdateProjectSnippet();
+});
 </script>
-
-## Mettre à jour
-
-Généralement, on veut rester sur la même version tout du long, mais si c'est juste pour avoir le dernier patch, c'est raisonnable.
-
-### Sans modifications
-
-Le moteur n'a pas encore été modifié, donc on reprend juste les deux derniers commits.
-```bash
-git fetch upstream 4.7
-git reset --hard upstream/4.7
-```
-
-### Avec modifications
-
-Le moteur a été modifié, il faut donc reprendre tous les commits intermédiaires.
-```bash
-git fetch upstream 4.7
-git rebase upstream/4.7
-```
