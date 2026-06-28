@@ -10,11 +10,53 @@ Différents scripts utiles pour la gestion d'un projet Godot
 
 ## Nouveau projet
 
-```bash
-git fetch upstream 4.7 # Mettre à jour ou installer une nouvelle version
-git switch -c <project-name> upstream/4.7~1
-git push -u origin <project-name>
-```
+
+<div class="language-bash highlighter-rouge"><div class="highlight" tabindex="0"><pre class="highlight"><code id="godot-new-project">git fetch upstream 4.7 <span class="c"># Mettre à jour ou installer une nouvelle version</span>
+git switch <span class="nt">-c</span> &lt;project-name&gt; upstream/4.7
+git push <span class="nt">-u</span> origin &lt;project-name&gt;
+</code></pre></div><button type="button" aria-label="Copy code to clipboard"><svg viewBox="0 0 24 24" class="copy-icon"><use xlink:href="#svg-copy"></use></svg></button></div>
+
+<div class="git-config">
+  <label>Project : <input id="project-name" type="text" placeholder="<project-name>"/></label>
+  <label>Version :
+    <select id="version-select">
+      <option value="4.7">4.7</option>
+      <option value="4.6">4.6</option>
+    </select>
+  </label>
+</div>
+
+<script>
+function updateSnippet() {
+    const name = document.getElementById('project-name').value || '&lt;project-name&gt';
+    const version = document.getElementById('version-select').value;
+
+    document.getElementById('godot-new-project').innerHTML =
+`git fetch upstream ${version} <span class="c"># Mettre à jour ou installer une nouvelle version</span>\ngit switch <span class="nt">-c</span> ${name} upstream/${version}\ngit push <span class="nt">-u</span> origin ${name}\n`;
+}
+
+async function fetchGodotVersions() {
+    const response = await fetch(
+        'https://api.github.com/repos/godotengine/godot/branches'
+    );
+    const branches = await response.json();
+    return branches.map(b => b.name).filter(name => name != "master").reverse();
+}
+
+async function populateVersionSelect() {
+    const versions = await fetchGodotVersions();
+    const select = document.getElementById('version-select');
+    select.innerHTML = versions
+      .map(v => `<option value="${v}">${v}</option>`)
+      .join('');
+    updateSnippet();
+}
+
+populateVersionSelect();
+
+document.getElementById('project-name').addEventListener('input', updateSnippet);
+document.getElementById('version-select').addEventListener('change', updateSnippet);
+</script>
 
 ## Mettre à jour
 
@@ -33,5 +75,5 @@ git reset --hard upstream/4.7
 Le moteur a été modifié, il faut donc reprendre tous les commits intermédiaires.
 ```bash
 git fetch upstream 4.7
-git rebase upstream/4.7~1
+git rebase upstream/4.7
 ```
